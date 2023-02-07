@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="com.ssafy.vue.model.mapper.CovidHospitalMapper">
+
+	<resultMap type="covidHospitalDto" id="hospital">
+		<result column="hospital_no" property="hospitalNo" />
+		<result column="hospital_name" property="hospitalName" />
+		<result column="dong_code" property="dongCode" />
+		<result column="lat" property="lat" />
+		<result column="lng" property="lng" />
+		<result column="phone_num" property="phoneNum" />
+		<result column="clinic_name" property="clinicName" />
+		<result column="clinic_phone_num" property="clinicPhoneNum" />
+		<result column="info" property="info" />
+		<result column="distance" property="distance" />
+	</resultMap>
+
+	<select id="getHospitalByGPS" parameterType="map"
+		resultMap="hospital">
+		select h.hospital_no, hospital_name, dong_code, lat, lng,
+		phone_num, clinic_name, clinic_phone_num, info, distance
+		from
+		covid_hospital h join (select hospital_no, ( 6371 * acos( cos(
+		radians(#{lat}) ) * cos( radians( lat ) ) * cos( radians( lng ) -
+		radians(#{lng}) ) + sin( radians(#{lat}) ) * sin( radians( lat ) ) ) )
+		AS distance from covid_hospital) tmp on h.hospital_no=tmp.hospital_no
+		where distance &lt;=5;
+	</select>
+
+	<select id="getHospitalByName" parameterType="string"
+		resultMap="hospital">
+		select hospital_no, hospital_name, dong_code, lat, lng,
+		phone_num,
+		clinic_name, clinic_phone_num, info
+		from covid_hospital
+		where
+		hospital_name like concat('%',#{name},'%');
+	</select>
+
+	<select id="getHospitalList" resultMap="hospital">
+		select hospital_no,
+		hospital_name, dong_code, lat, lng, phone_num,
+		clinic_name,
+		clinic_phone_num, info
+		from covid_hospital;
+	</select>
+
+	<select id="getHospitalByCode" parameterType="string"
+		resultMap="hospital">
+		select hospital_no, hospital_name, dong_code, lat, lng,
+		phone_num,
+		clinic_name, clinic_phone_num, info
+		from covid_hospital
+		where dong_code like concat(#{dongCode},'%');
+	</select>
+</mapper>

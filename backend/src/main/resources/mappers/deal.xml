@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.vue.model.mapper.HouseDealMapper">
+	<select id="getDeal" parameterType="int" resultType="com.ssafy.vue.model.HouseDealDto">
+		select no, d.aptCode, aptName, dongCode, dealAmount, dealYear, dealMonth, dealDay, area, floor,
+		type, rentMoney 
+		from housedeal d join houseinfo i on d.aptCode=i.aptCode 
+		where d.aptCode = #{aptCode}
+		order by no desc;
+	</select>
+	
+	<select id="getDealInFilter" parameterType="com.ssafy.vue.model.HouseSearchDto" resultType="com.ssafy.vue.model.HouseDealDto">
+		select no, d.aptCode, aptName, dongCode, dealAmount, dealYear, dealMonth, dealDay, area, floor, type, rentMoney
+		from housedeal d
+		left join houseinfo i 
+		on d.aptCode=i.aptCode 
+		where aptName is not null and d.aptCode is not null 
+		<trim prefix="and " suffixOverrides="and ">
+            <if test='aptCode!=-1'>d.aptCode=#{aptCode} and </if>
+            <if test='!gugunCode.equals("")'>left(dongCode,5) = left(#{gugunCode},5) and </if>
+            <if test='!aptName.equals("")'>aptName like concat('%', #{aptName},'%') and </if>
+            <if test='!minDealAmount.equals("")'> cast(replace(dealAmount,',','') as unsigned int) &gt;= cast(replace(#{minDealAmount},',','') as unsigned int) and </if>
+            <if test='!maxDealAmount.equals("")'> cast(replace(dealAmount,',','') as unsigned int) &lt;= cast(replace(#{maxDealAmount},',','') as unsigned int) and </if>
+            <if test='!minBuildYear.equals("")'> buildYear &gt;= cast(#{minBuildYear} as unsigned int) and </if>
+            <if test='!maxBuildYear.equals("")'> buildYear &lt;= cast(#{maxBuildYear} as unsigned int) and </if>
+            <if test='!minArea.equals("")'> cast(area as decimal(8,4)) &gt;= cast(#{minArea} as decimal(8,4)) and </if>
+            <if test='!maxArea.equals("")'> cast(area as decimal(8,4)) &lt;= cast(#{maxArea} as decimal(8,4)) </if>
+        </trim> 
+		order by aptName
+	</select>
+	
+</mapper>

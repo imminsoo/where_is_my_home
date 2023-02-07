@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.vue.model.mapper.HouseMapMapper">
+	
+	<select id="getAptInGugun" parameterType="string" resultType="com.ssafy.vue.model.HouseInfoDto">
+		select h.aptCode, h.aptName, h.buildYear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		where left(dongCode, 5) = left(#{gugun},5) 
+		order by aptName
+	</select>
+	
+	<select id="getAptInDong" parameterType="string" resultType="com.ssafy.vue.model.HouseInfoDto">
+		select h.aptCode, h.aptName, h.buildYear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		where left(dongCode,8) = left(#{dong},8) 
+		order by aptName
+	</select>
+	
+	<select id="getAptInAptCode" parameterType="int" resultType="com.ssafy.vue.model.HouseInfoDto">
+	select h.aptCode, h.aptName, h.buildYear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice
+				from houseinfo h 
+		left join sidocode si 
+		on left(h.dongcode,2) = left(si.sidocode,2)  
+		left join guguncode gu 
+		on left(h.dongcode,5) = left(gu.guguncode,5) 
+		left join housedeal d 
+		on h.aptCode=d.aptCode 
+		where h.aptCode=#{aptCode} limit 1;
+	</select>
+	
+	<select id="getAptInFilter" parameterType="com.ssafy.vue.model.HouseSearchDto" resultType="com.ssafy.vue.model.HouseInfoDto">
+		select distinct h.aptCode, h.aptName, h.buildYear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice
+		from houseinfo h 
+		left join sidocode si 
+		on left(h.dongcode,2) = left(si.sidocode,2)  
+		left join guguncode gu 
+		on left(h.dongcode,5) = left(gu.guguncode,5) 
+		left join housedeal d 
+		on h.aptCode=d.aptCode 
+		where aptName is not null
+		<trim prefix="and " suffixOverrides="and ">
+            <if test='!gugunCode.equals("")'>left(dongCode,5) = left(#{gugunCode},5) and </if>
+            <if test='!aptName.equals("")'>aptName like concat('%', #{aptName},'%') and </if>
+            <if test='!minDealAmount.equals("")'> cast(replace(dealAmount,',','') as unsigned int) &gt;= cast(replace(#{minDealAmount},',','') as unsigned int) and </if>
+            <if test='!maxDealAmount.equals("")'> cast(replace(dealAmount,',','') as unsigned int) &lt;= cast(replace(#{maxDealAmount},',','') as unsigned int) and </if>
+            <if test='!minBuildYear.equals("")'> buildYear &gt;= cast(#{minBuildYear} as unsigned int) and </if>
+            <if test='!maxBuildYear.equals("")'> buildYear &lt;= cast(#{maxBuildYear} as unsigned int) and </if>
+            <if test='!minArea.equals("")'> cast(area as decimal(8,4)) &gt;= cast(#{minArea} as decimal(8,4)) and </if>
+            <if test='!maxArea.equals("")'> cast(area as decimal(8,4)) &lt;= cast(#{maxArea} as decimal(8,4)) </if>
+        </trim> 
+		order by aptName
+	</select>
+	
+</mapper>

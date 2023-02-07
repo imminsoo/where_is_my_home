@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.vue.model.mapper.FavoriteMapper">
+
+	<resultMap id="favoriteDto" type="com.ssafy.vue.model.FavoriteDto">
+		<id column="no" property="no"/>
+		<id column="userid" property="userid"/>
+		<id column="aptCode" property="aptCode"/>
+		<association property="houseInfo" javaType="com.ssafy.vue.model.HouseInfoDto">
+			<id column="aptCode" property="aptCode"/>
+			<id column="aptName" property="aptName"/>
+			<id column="dongCode" property="dongCode"/>
+			<id column="sidoName" property="sidoName"/>
+			<id column="gugunName" property="gugunName"/>
+			<id column="buildYear" property="buildYear"/>
+			<id column="jibun" property="jibun"/>
+			<id column="lat" property="lat"/>
+			<id column="lng" property="lng"/>
+			<id column="img" property="img"/>
+			<id column="recentPrice" property="recentPrice"/>
+		</association>
+	</resultMap>
+
+	<select id="getAllFavorites" resultMap="favoriteDto">
+		select no, userid, f.aptCode, aptName, dongCode, sidoName, gugunName, buildYear, jibun, lat, lng, img, 
+		(select dealAmount from housedeal where aptCode = f.aptCode and no = (select max(no) from housedeal where aptCode = f.aptCode)) recentPrice
+		from favorites f 
+		join houseinfo i 
+		on f.aptCode=i.aptCode
+		left join sidocode si
+		on left(i.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(i.dongcode,5) = left(gu.guguncode,5);
+	</select>
+
+	<select id="getFavoritesByUserId" parameterType="string"
+		resultMap="favoriteDto">
+		select no, userid, f.aptCode, aptName, dongCode, sidoName, gugunName, buildYear, jibun, lat, lng, img,
+		(select dealAmount from housedeal where aptCode = f.aptCode and no = (select max(no) from housedeal where aptCode = f.aptCode)) recentPrice
+		from favorites f 
+		join houseinfo i 
+		on f.aptCode=i.aptCode
+		left join sidocode si
+		on left(i.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(i.dongcode,5) = left(gu.guguncode,5)
+		where userid=#{userid};
+	</select>
+
+	<insert id="addFavorite" parameterType="favoriteDto">
+		insert into favorites(userid, aptCode) 
+		values (#{userid},#{aptCode});
+	</insert>
+	
+	<delete id="deleteFavorite">
+		delete from favorites 
+		where userid=#{userid}
+		and aptCode=#{aptCode};
+	</delete>
+	
+	<select id="getFavoritesCount" parameterType="string" resultType="int">
+		select count(*) 
+		from favorites 
+		where userid=#{userid};
+	</select>
+</mapper>
+
